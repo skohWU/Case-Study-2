@@ -1,10 +1,11 @@
 function [G] = make_ring(n,k)
 
 G = zeros(n,n);
+S = circshift(eye(n),1);
 
 for j = 1:k
-    S = circshift(eye(n),j);
-    G = G + S + (S)';
+
+    G = G + S^j + (S^j)';
 end
 
 end
