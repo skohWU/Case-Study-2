@@ -1,16 +1,7 @@
-function [outputArg1,outputArg2] = make_star(inputArg1,inputArg2)
-%MAKE_STAR Summary of this function goes here
-%   Detailed explanation goes here
-arguments (Input)
-    inputArg1
-    inputArg2
-end
+function [G] = make_star(n)
 
-arguments (Output)
-    outputArg1
-    outputArg2
-end
+e_1 = zeros(n)';
+e_1(1) = 1;
+G = (e_1 * ones(n)') + (ones(n) * e_1') - 2 * (e_1 * e_1');
 
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
 end

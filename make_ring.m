@@ -1,16 +1,6 @@
-function [outputArg1,outputArg2] = make_ring(inputArg1,inputArg2)
-%MAKE_RING Summary of this function goes here
-%   Detailed explanation goes here
-arguments (Input)
-    inputArg1
-    inputArg2
+function [G] = make_ring(n)
+
+G = ones(n,n) - eye(n);
+
 end
 
-arguments (Output)
-    outputArg1
-    outputArg2
-end
-
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
-end
