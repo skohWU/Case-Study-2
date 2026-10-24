@@ -1,10 +1,12 @@
+clearvars;
+close all;
+
 n = 100;
 
 rng(105); 
 P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
 
 % Finding r_min
-
 r = 0;
 
 while true
@@ -17,6 +19,14 @@ while true
         break
     end
 end
+
+G_disk = make_disk(P0,r_min);
+[degree_disk, edge_count_disk, diameter_disk] = graph_stats(G_disk);
+
+
+figure;
+plot(graph(G_disk), 'XData', P0(:,1), 'YData', P0(:,2), 'NodeColor','r');
+grid on;
 
 
 %G_ring = make_ring();
