@@ -8,6 +8,7 @@ function [degree, edge_count, diameter] = graph_stats(G)
     I = eye(n,n);
     R = I + G;
     k = 0;
+
     while true
         if any(R == 0,"all")
             R = (I + G) * R;
@@ -16,7 +17,11 @@ function [degree, edge_count, diameter] = graph_stats(G)
         else
             diameter = k;
             break
-            
+        end
+
+        if k > 1000
+            diameter = inf;
+            break
         end
     end
 
