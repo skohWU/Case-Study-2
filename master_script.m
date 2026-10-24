@@ -24,8 +24,9 @@ G_disk = make_disk(P0,r_min);
 [degree_disk, edge_count_disk, diameter_disk] = graph_stats(G_disk);
 
 
-figure;
-plot(graph(G_disk), 'XData', P0(:,1), 'YData', P0(:,2), 'NodeColor','r');
+figure('Name',"Disk Graph Network");
+plot(graph(G_disk), 'XData', P0(:,1), 'YData', P0(:,2), 'NodeColor','r', 'NodeLabel',{});
+title("Disk Graph Network");
 grid on;
 
 
