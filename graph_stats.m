@@ -7,7 +7,7 @@ function [degree, edge_count, diameter] = graph_stats(G)
 
     I = eye(n,n);
     R = I + G;
-    k = 0;
+    k = 1;
 
     while true
         if any(R == 0,"all")
