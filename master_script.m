@@ -1,4 +1,10 @@
 n = 100;
 
-Gr = make_ring();
-Gr_stat = graph_stats();
+rng(105); 
+P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
+
+G_disk = make_disk(P0,3);
+
+
+%G_ring = make_ring();
+%G_ring_stat = graph_stats(G_ring);
