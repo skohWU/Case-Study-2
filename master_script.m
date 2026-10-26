@@ -42,6 +42,8 @@ while true
     end
 end
 
+% Getting the stats for each network.
+
 G_ring = make_ring(n,k);
 [degree_ring, edge_count_ring, diameter_ring] = graph_stats(G_ring);
 
@@ -51,13 +53,20 @@ G_star = make_star(n);
 G_complete = make_complete(n);
 [degree_complete, edge_count_complete, diameter_complete] = graph_stats(G_complete);
 
+% Make a table comparing different networks.
+
 stats = table([degree_complete' * ones(n,1) * 1/100, degree_star' * ones(n,1) * 1/100 , degree_ring' * ones(n,1) * 1/100 , degree_disk' * ones(n,1) * 1/100]',[max(degree_complete), max(degree_star), max(degree_ring), max(degree_disk)]', [edge_count_complete, edge_count_star, edge_count_ring, edge_count_disk]', [diameter_complete, diameter_star, diameter_ring, diameter_disk]', VariableNames = ["Mean Degree", "Max Degree", "Edges", "Diameter"], RowNames=["Complete", "Star", "Ring", "Disk"]);
 
+% Graph disk network with connections.
 
 figure('Name',"Disk Graph Network");
 plot(graph(G_disk), 'XData', P0(:,1), 'YData', P0(:,2), 'NodeColor','r', 'NodeLabel',{});
 title("Disk Graph Network");
 grid on;
 
-%G_ring = make_ring();
-%G_ring_stat = graph_stats(G_ring);
+% Make each protocol, A and B, for each network.
+
+[W_A_complete, W_B_complete] = makeProtocols(degree_complete,G_complete);
+[W_A_ring, W_B_ring] = makeProtocols(degree_ring,G_ring);
+[W_A_star, W_B_star] = makeProtocols(degree_star,G_star);
+[W_A_disk, W_B_disk] = makeProtocols(degree_disk,G_disk);
