@@ -71,9 +71,12 @@ grid on;
 [W_A_star, W_B_star] = makeProtocols(degree_star,G_star);
 [W_A_disk, W_B_disk] = makeProtocols(degree_disk,G_disk);
 
-K = 10000;
+K = 100;
 
-P_final_disk = [simulate_linear(W_A_star,P0(:,1),K),simulate_linear(W_A_star,P0(:,2),K)];
+X = simulate_linear(W_A_disk,P0(:,1),K);
+Y = simulate_linear(W_A_disk,P0(:,2),K);
+
+P_final_disk = [X(:,K+1), Y(:,K+1)];
 
 figure('Name',"Graph after Updating Positions");
 plot(graph(G_disk), 'XData', P_final_disk(:,1), 'YData', P_final_disk(:,2), 'NodeColor','r', 'NodeLabel',{});
