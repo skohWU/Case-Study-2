@@ -11,6 +11,4 @@ function G = make_disk(P, r)
     G = (delta <= r^2);
     G = G - eye(n,n);
 
-
-
 end

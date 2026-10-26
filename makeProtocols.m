@@ -1,5 +1,4 @@
 function [W_A,W_B] = makeProtocols(d,G)
-    
     D = diag(d);
     L = D - G;
 
