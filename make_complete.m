@@ -4,4 +4,3 @@ G = ones(n,n) - eye(n);
 
 end
 
-% hi 
