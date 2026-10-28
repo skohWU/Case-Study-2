@@ -73,12 +73,61 @@ grid on;
 
 K = 100;
 
-X = simulate_linear(W_A_disk,P0(:,1),K);
-Y = simulate_linear(W_A_disk,P0(:,2),K);
+C = eye(n) - 1/n * ones(n,1) * ones(n,1)';
 
-P_final_disk = [X(:,K+1), Y(:,K+1)];
+% Simulate movement and create delta vector for T1 (Complete)
 
-figure('Name',"Graph after Updating Positions");
-plot(graph(G_disk), 'XData', P_final_disk(:,1), 'YData', P_final_disk(:,2), 'NodeColor','r', 'NodeLabel',{});
-title("Graph after Updating Positions");
+X_complete = simulate_linear(W_A_complete,P0(:,1),K);
+Y_complete = simulate_linear(W_A_complete,P0(:,2),K);
+
+delta_complete = zeros(n,K+1);
+
+for k = 1:K+1
+    delta_complete(k) = sqrt(norm(C * X_complete(:,k))^2 + norm(C * Y_complete(:,k))^2);
+end
+
+k_epsilon_complete = find(delta_complete <= 0.01*delta_complete(1),1);
+
+% Simulate movement and create delta vector for T2 (Star)
+
+X_star = simulate_linear(W_A_star,P0(:,1),K);
+Y_star = simulate_linear(W_A_star,P0(:,2),K);
+
+delta_star = zeros(n,K+1);
+
+for k = 1:K+1
+    delta_star(k) = sqrt(norm(C * X_star(:,k))^2 + norm(C * Y_star(:,k))^2);
+end
+
+k_epsilon_star = find(delta_star <= 0.01*delta_star(1),1);
+
+% Simulate movement and create delta vector for T3 (Ring)
+
+X_ring = simulate_linear(W_A_ring,P0(:,1),K);
+Y_ring = simulate_linear(W_A_ring,P0(:,2),K);
+
+delta_ring = zeros(n,K+1);
+
+for k = 1:K+1
+    delta_ring(k) = sqrt(norm(C * X_ring(:,k))^2 + norm(C * Y_ring(:,k))^2);
+end
+
+k_epsilon_ring = find(delta_ring <= 0.01*delta_ring(1),1);
+
+% Simulate movement and create delta vector for T4 (Disk)
+
+X_disk = simulate_linear(W_A_disk,P0(:,1),K);
+Y_disk = simulate_linear(W_A_disk,P0(:,2),K);
+
+delta_disk = zeros(n,K+1);
+
+for k = 1:K+1
+    delta_disk(k) = sqrt(norm(C * X_disk(:,k))^2 + norm(C * Y_disk(:,k))^2);
+end
+
+k_epsilon_disk = find(delta_disk <= 0.01*delta_disk(1),1);
+
+figure('Name',"Graph after Updating Positions, Disk");
+plot(graph(G_disk), 'XData', X_disk(:,K+1), 'YData', Y_disk(:,K+1), 'NodeColor','r', 'NodeLabel',{});
+title("Graph after Updating Positions, Disk");
 grid on;
