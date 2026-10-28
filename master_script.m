@@ -138,4 +138,32 @@ lamda = ones(100,1);
 a = P0(:,1);
 b = P0(:,2);
 
+% Simulate a Deployment with Leaders
 
+num_leaders = 4;
+
+test = make_deployment(rand*100);
+leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders);
+
+n = size(test.G,1);
+
+lamda = ones(n,1);
+lamda(leaders) = .5;
+lamda(test.faulty) = 0;
+
+a = test.P0(:,1);
+a(leaders) = test.g(1);
+b = test.P0(:,2);
+a(leaders) = test.g(2);
+
+figure('Name',"Test Network Start");
+plot(graph(test.G), 'XData', test.P0(:,1), 'YData', test(:,2), 'NodeColor','r', 'NodeLabel',{});
+title("Test Network Start");
+grid on;
+
+[degree, ~, ~, ~] = graph_stats(test.G);
+
+[W, ~] = makeProtocols(degree, test.G);
+
+X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
+Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
