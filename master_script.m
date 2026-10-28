@@ -70,3 +70,100 @@ grid on;
 [W_A_ring, W_B_ring] = makeProtocols(degree_ring,G_ring);
 [W_A_star, W_B_star] = makeProtocols(degree_star,G_star);
 [W_A_disk, W_B_disk] = makeProtocols(degree_disk,G_disk);
+
+K = 100;
+
+C = eye(n) - 1/n * ones(n,1) * ones(n,1)';
+
+% Simulate movement and create delta vector for T1 (Complete)
+
+X_complete = simulate_linear(W_A_complete,P0(:,1),K);
+Y_complete = simulate_linear(W_A_complete,P0(:,2),K);
+
+delta_complete = zeros(n,K+1);
+
+for k = 1:K+1
+    delta_complete(k) = sqrt(norm(C * X_complete(:,k))^2 + norm(C * Y_complete(:,k))^2);
+end
+
+k_epsilon_complete = find(delta_complete <= 0.01*delta_complete(1),1);
+
+% Simulate movement and create delta vector for T2 (Star)
+
+X_star = simulate_linear(W_A_star,P0(:,1),K);
+Y_star = simulate_linear(W_A_star,P0(:,2),K);
+
+delta_star = zeros(n,K+1);
+
+for k = 1:K+1
+    delta_star(k) = sqrt(norm(C * X_star(:,k))^2 + norm(C * Y_star(:,k))^2);
+end
+
+k_epsilon_star = find(delta_star <= 0.01*delta_star(1),1);
+
+% Simulate movement and create delta vector for T3 (Ring)
+
+X_ring = simulate_linear(W_A_ring,P0(:,1),K);
+Y_ring = simulate_linear(W_A_ring,P0(:,2),K);
+
+delta_ring = zeros(n,K+1);
+
+for k = 1:K+1
+    delta_ring(k) = sqrt(norm(C * X_ring(:,k))^2 + norm(C * Y_ring(:,k))^2);
+end
+
+k_epsilon_ring = find(delta_ring <= 0.01*delta_ring(1),1);
+
+% Simulate movement and create delta vector for T4 (Disk)
+
+X_disk = simulate_linear(W_A_disk,P0(:,1),K);
+Y_disk = simulate_linear(W_A_disk,P0(:,2),K);
+
+delta_disk = zeros(n,K+1);
+
+for k = 1:K+1
+    delta_disk(k) = sqrt(norm(C * X_disk(:,k))^2 + norm(C * Y_disk(:,k))^2);
+end
+
+k_epsilon_disk = find(delta_disk <= 0.01*delta_disk(1),1);
+
+figure('Name',"Graph after Updating Positions, Disk");
+plot(graph(G_disk), 'XData', X_disk(:,K+1), 'YData', Y_disk(:,K+1), 'NodeColor','r', 'NodeLabel',{});
+title("Graph after Updating Positions, Disk");
+grid on;
+
+% Leaders and Faulty Robots
+
+lamda = ones(100,1);
+a = P0(:,1);
+b = P0(:,2);
+
+% Simulate a Deployment with Leaders
+
+num_leaders = 4;
+
+test = make_deployment(rand*100);
+leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders);
+
+n = size(test.G,1);
+
+lamda = ones(n,1);
+lamda(leaders) = .5;
+lamda(test.faulty) = 0;
+
+a = test.P0(:,1);
+a(leaders) = test.g(1);
+b = test.P0(:,2);
+a(leaders) = test.g(2);
+
+figure('Name',"Test Network Start");
+plot(graph(test.G), 'XData', test.P0(:,1), 'YData', test(:,2), 'NodeColor','r', 'NodeLabel',{});
+title("Test Network Start");
+grid on;
+
+[degree, ~, ~, ~] = graph_stats(test.G);
+
+[W, ~] = makeProtocols(degree, test.G);
+
+X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
+Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
