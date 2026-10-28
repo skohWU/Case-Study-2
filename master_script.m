@@ -131,3 +131,11 @@ figure('Name',"Graph after Updating Positions, Disk");
 plot(graph(G_disk), 'XData', X_disk(:,K+1), 'YData', Y_disk(:,K+1), 'NodeColor','r', 'NodeLabel',{});
 title("Graph after Updating Positions, Disk");
 grid on;
+
+% Leaders and Faulty Robots
+
+lamda = ones(100,1);
+a = P0(:,1);
+b = P0(:,2);
+
+

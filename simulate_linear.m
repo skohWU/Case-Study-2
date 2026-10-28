@@ -6,5 +6,5 @@ function X = simulate_linear(W, x0, K)
         X(:,i+1) = W * X(:,i);
     end
 
-    round(norm(X(:,K+1) - W^K * x0))
+    round(norm(X(:,K+1) - W^K * x0));
 end
