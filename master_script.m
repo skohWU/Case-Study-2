@@ -3,7 +3,7 @@ close all;
 
 n = 100;
 
-rng(105); 
+% rng(105); 
 P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
 
 % Finding r_min
@@ -157,13 +157,26 @@ b = test.P0(:,2);
 a(leaders) = test.g(2);
 
 figure('Name',"Test Network Start");
-plot(graph(test.G), 'XData', test.P0(:,1), 'YData', test(:,2), 'NodeColor','r', 'NodeLabel',{});
+plot(graph(test.G), 'XData', test.P0(:,1), 'YData', test.P0(:,2), 'NodeColor','r', 'NodeLabel',{});
 title("Test Network Start");
 grid on;
 
-[degree, ~, ~, ~] = graph_stats(test.G);
+[degree, ~, ~] = graph_stats(test.G);
 
 [W, ~] = makeProtocols(degree, test.G);
 
 X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
 Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+
+% Simple leader selection functions
+
+function S = random_working(G, faulty, m)
+    working_robots = true(size(G,1),1);
+    working_robots(faulty) = false;
+    working_indices = find(working_robots);
+
+    S = working_indices(randperm(size(working_indices,1), m));
+end
+
+random_leaders = random_working(test.G,test.faulty,num_leaders);
+J = score_mission(test, random_leaders);
