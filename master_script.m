@@ -3,7 +3,7 @@ close all;
 
 n = 100;
 
-rng(105); 
+% rng(105); 
 P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
 
 % Finding r_min
@@ -132,12 +132,6 @@ plot(graph(G_disk), 'XData', X_disk(:,K+1), 'YData', Y_disk(:,K+1), 'NodeColor',
 title("Graph after Updating Positions, Disk");
 grid on;
 
-% Leaders and Faulty Robots
-
-lamda = ones(100,1);
-a = P0(:,1);
-b = P0(:,2);
-
 % Simulate a Deployment with Leaders
 
 num_leaders = 4;
@@ -157,13 +151,55 @@ b = test.P0(:,2);
 a(leaders) = test.g(2);
 
 figure('Name',"Test Network Start");
-plot(graph(test.G), 'XData', test.P0(:,1), 'YData', test(:,2), 'NodeColor','r', 'NodeLabel',{});
+plot(graph(test.G), 'XData', test.P0(:,1), 'YData', test.P0(:,2), 'NodeColor','r', 'NodeLabel',{});
 title("Test Network Start");
 grid on;
 
-[degree, ~, ~, ~] = graph_stats(test.G);
+[degree, ~, ~] = graph_stats(test.G);
 
 [W, ~] = makeProtocols(degree, test.G);
 
 X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
 Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+
+% Simple leader selection functions
+
+function S = random_working(G, faulty, m)
+    working_robots = true(size(G,1),1);
+    working_robots(faulty) = false;
+    working_indices = find(working_robots);
+
+    S = working_indices(randperm(size(working_indices,1), m));
+end
+
+
+function S = highest_degree(G, faulty, m)
+    [degree, ~, ~] = graph_stats(G);
+
+    working_robots = false(size(G,1),1);
+    working_robots(faulty) = true;
+    broken_indices = find(working_robots);
+
+    degree(broken_indices) = 0;
+
+    [~,S] = maxk(degree,m);
+end
+
+function S = closest_to_goal(G, P0,faulty, g, m)
+    working_robots = false(size(G,1),1);
+    working_robots(faulty) = true;
+    broken_indices = find(working_robots);
+
+    distance = vecnorm(P0 - g, 2, 2);
+    distance(broken_indices) = 0;
+    [~,S] = maxk(distance,m);
+
+end
+
+D = make_deployment(rand*100);
+
+random_leaders = random_working(D.G,D.faulty,num_leaders);
+highest_degree_leaders = highest_degree(D.G, D.faulty, num_leaders);
+closest_leaders = closest_to_goal(D.G, D.P0, D.faulty, D.g, num_leaders);
+
+J = score_mission(D, highest_degree_leaders);
