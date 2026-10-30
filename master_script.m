@@ -190,7 +190,7 @@ function S = closest_to_goal(G, P0,faulty, g, m)
     working_robots(faulty) = true;
     broken_indices = find(working_robots);
 
-    distance = vecnorm(P0 - D.g, 2, 2);
+    distance = vecnorm(P0 - g, 2, 2);
     distance(broken_indices) = 0;
     [~,S] = maxk(distance,m);
 
