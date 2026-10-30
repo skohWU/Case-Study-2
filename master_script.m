@@ -132,12 +132,6 @@ plot(graph(G_disk), 'XData', X_disk(:,K+1), 'YData', Y_disk(:,K+1), 'NodeColor',
 title("Graph after Updating Positions, Disk");
 grid on;
 
-% Leaders and Faulty Robots
-
-lamda = ones(100,1);
-a = P0(:,1);
-b = P0(:,2);
-
 % Simulate a Deployment with Leaders
 
 num_leaders = 4;
@@ -178,5 +172,34 @@ function S = random_working(G, faulty, m)
     S = working_indices(randperm(size(working_indices,1), m));
 end
 
-random_leaders = random_working(test.G,test.faulty,num_leaders);
-J = score_mission(test, random_leaders);
+
+function S = highest_degree(G, faulty, m)
+    [degree, ~, ~] = graph_stats(G);
+
+    working_robots = false(size(G,1),1);
+    working_robots(faulty) = true;
+    broken_indices = find(working_robots);
+
+    degree(broken_indices) = 0;
+
+    [~,S] = maxk(degree,m);
+end
+
+function S = closest_to_goal(G, P0,faulty, g, m)
+    working_robots = false(size(G,1),1);
+    working_robots(faulty) = true;
+    broken_indices = find(working_robots);
+
+    distance = vecnorm(P0 - D.g, 2, 2);
+    distance(broken_indices) = 0;
+    [~,S] = maxk(distance,m);
+
+end
+
+D = make_deployment(rand*100);
+
+random_leaders = random_working(D.G,D.faulty,num_leaders);
+highest_degree_leaders = highest_degree(D.G, D.faulty, num_leaders);
+closest_leaders = closest_to_goal(D.G, D.P0, D.faulty, D.g, num_leaders);
+
+J = score_mission(D, highest_degree_leaders);
