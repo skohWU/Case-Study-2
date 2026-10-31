@@ -326,6 +326,7 @@ n = size(seed19.G,1);
 
 leaders = random_working(seed19.G, seed19.faulty, num_leaders);
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 lamda = ones(n,1);
 for i = leaders
@@ -352,10 +353,14 @@ grid on;
 =======
 export_for_viewer(seed19,leaders,"seed19random.json");
 >>>>>>> main
+=======
+export_for_viewer(seed19,leaders,"seed19random.json");
+>>>>>>> main
 
 % Highest degree Leaders on 19
 
 leaders = highest_degree(seed19.G, seed19.faulty, num_leaders);
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 lamda = ones(n,1);
@@ -383,10 +388,14 @@ grid on;
 =======
 export_for_viewer(seed19,leaders,"seed19Highest.json");
 >>>>>>> main
+=======
+export_for_viewer(seed19,leaders,"seed19Highest.json");
+>>>>>>> main
 
 % Closest to g Leaders on 19
 
 leaders = closest_to_goal(seed19.G, seed19.P0, seed19.faulty, seed19.g, num_leaders);
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 lamda = ones(n,1);
@@ -442,6 +451,9 @@ for j = leaders
     grid on;
     count = count + 1;
 end
+=======
+export_for_viewer(seed19,leaders,"seed19Closest.json");
+>>>>>>> main
 =======
 export_for_viewer(seed19,leaders,"seed19Closest.json");
 >>>>>>> main

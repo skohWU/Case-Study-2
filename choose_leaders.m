@@ -24,7 +24,11 @@ function S = choose_leaders(G, P0, faulty, g, m)
 %       this function, so that this single file is all we need to run it.
 %
 <<<<<<< HEAD
+<<<<<<< HEAD
 %   Team: <Plswork>
+=======
+%   Team: Group 12
+>>>>>>> main
 =======
 %   Team: Group 12
 >>>>>>> main
