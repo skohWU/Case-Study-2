@@ -3,7 +3,7 @@ close all;
 
 n = 100;
 
-% rng(105); 
+rng(105); 
 P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
 
 % Finding r_min
@@ -133,10 +133,11 @@ title("Graph after Updating Positions, Disk");
 grid on;
 
 % Simulate a Deployment with Leaders
+seeds = randi([1, 250], 1, 30);
 
 num_leaders = 4;
 
-test = make_deployment(rand*100);
+test = make_deployment(seeds(1));
 leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders);
 
 n = size(test.G,1);
@@ -216,8 +217,6 @@ end
 
 % Comparing Simple Leader Selections
 
-seeds = randi([1, 100], 1, 30); 
-
 random_scores = zeros(size(seeds));
 highest_scores = zeros(size(seeds));
 closest_scores = zeros(size(seeds));
@@ -241,3 +240,104 @@ plot(highest_scores);
 plot(closest_scores);
 legend("Random Leaders", "Highest Degree Leaders", "Closest to g Leaders");
 hold off;
+
+writematrix([random_scores', highest_scores', closest_scores'],"Simple_selection_scores.csv");
+
+% Looking at one deployment, seed 19
+
+seed19 = make_deployment(seeds(19));
+
+figure('Name',"Seed 19");
+plot(graph(seed19.G), 'XData', seed19.P0(:,1), ...
+    'YData', seed19.P0(:,2), 'NodeColor','r', 'NodeLabel', ...
+    {});
+hold on;
+plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
+title("Seed 19 Start");
+grid on;
+
+n = size(seed19.G,1);
+
+lamda = ones(n,1);
+
+[degree, ~, ~] = graph_stats(seed19.G);
+
+[W, ~] = makeProtocols(degree, seed19.G);
+
+% Random Leaders on 19
+
+leaders = random_working(seed19.G, seed19.faulty, num_leaders);
+
+for i = leaders
+    lamda(i) = 0.5;
+end
+lamda(test.faulty) = 0;
+
+a = seed19.P0(:,1);
+a(leaders) = seed19.g(1);
+b = seed19.P0(:,2);
+a(leaders) = seed19.g(2);
+
+X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
+Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+
+figure('Name',"Random Leaders 19 End");
+plot(graph(seed19.G), 'XData', X(:,n+1), ...
+    'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
+    {});
+hold on;
+plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
+title("Random Leaders 19 End");
+grid on;
+
+% Highest degree Leaders on 19
+
+leaders = highest_degree(seed19.G, seed19.faulty, num_leaders);
+
+for i = leaders
+    lamda(i) = 0.5;
+end
+lamda(test.faulty) = 0;
+
+a = seed19.P0(:,1);
+a(leaders) = seed19.g(1);
+b = seed19.P0(:,2);
+a(leaders) = seed19.g(2);
+
+X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
+Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+
+figure('Name',"Highest Deg Leaders 19 End");
+plot(graph(seed19.G), 'XData', X(:,n+1), ...
+    'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
+    {});
+hold on;
+plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
+title("Highest Deg Leaders 19 End");
+grid on;
+
+% Closest to g Leaders on 19
+
+leaders = closest_to_goal(seed19.G, seed19.P0, seed19.faulty, seed19.g, num_leaders);
+
+for i = leaders
+    lamda(i) = 0.5;
+end
+lamda(test.faulty) = 0;
+
+a = seed19.P0(:,1);
+a(leaders) = seed19.g(1);
+b = seed19.P0(:,2);
+a(leaders) = seed19.g(2);
+
+X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
+Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+
+figure('Name',"Closest Leaders 19 End");
+plot(graph(seed19.G), 'XData', X(:,n+1), ...
+    'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
+    {});
+hold on;
+plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
+title("Closest Leaders 19 End");
+grid on;
