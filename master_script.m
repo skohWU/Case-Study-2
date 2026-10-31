@@ -196,10 +196,28 @@ function S = closest_to_goal(G, P0,faulty, g, m)
 
 end
 
-D = make_deployment(rand*100);
+seeds = randi([1, 100], 1, 50); 
 
-random_leaders = random_working(D.G,D.faulty,num_leaders);
-highest_degree_leaders = highest_degree(D.G, D.faulty, num_leaders);
-closest_leaders = closest_to_goal(D.G, D.P0, D.faulty, D.g, num_leaders);
+random_scores = zeros(size(seeds));
+highest_scores = zeros(size(seeds));
+closest_scores = zeros(size(seeds));
 
-J = score_mission(D, highest_degree_leaders);
+for i = 1:size(seeds,2)
+    D = make_deployment(seeds(i));
+
+    random_leaders = random_working(D.G,D.faulty,num_leaders);
+    highest_degree_leaders = highest_degree(D.G, D.faulty, num_leaders);
+    closest_leaders = closest_to_goal(D.G, D.P0, D.faulty, D.g, num_leaders);
+
+    random_scores(i) = score_mission(D, random_leaders);
+    highest_scores(i) = score_mission(D, highest_degree_leaders);
+    closest_scores(i) = score_mission(D, closest_leaders);
+end
+
+figure;
+hold on;
+plot(random_scores);
+plot(highest_scores);
+plot(closest_scores);
+legend("Random Leaders", "Highest Degree Leaders", "Closest to g Leaders");
+hold off;

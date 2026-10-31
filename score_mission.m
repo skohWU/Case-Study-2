@@ -31,6 +31,8 @@ function [J] = score_mission(D, S)
     working_robots = true(size(n,1),1);
     working_robots(D.faulty) = false;
 
+    % Calculates J
+
     e_new = zeros(T,1);
     e_base = zeros(T,1);
 
