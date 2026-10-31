@@ -23,7 +23,7 @@ function S = choose_leaders(G, P0, faulty, g, m)
 %       Helper functions are allowed, but put them in this file, below
 %       this function, so that this single file is all we need to run it.
 %
-%   Team: <team name>
+%   Team: <Plswork>
 %   Members: Spencer Koh, Yijia Mao, Dayanis Morales Salgado
 %
 %   Strategy (2-3 sentences describing your rule, in words):
@@ -36,21 +36,18 @@ working = true(n, 1);
 working(faulty) = false;
 S = zeros(m, 1);
 % ---- replace this placeholder with your strategy ----
-elS = 1;
-for i = faulty.'
-    G(i, :) = zeros(1,n);
-    G(:, i) = zeros(n,1);
-end
-for i = 1:m
-    S(i) = sum(G(i, :));
-sort(S);
-for cols = G
-    if sum(cols) > S(1)
-        S(elS) = sum(cols);
-        sort(S);
-    end
-    
-end
+%Strategy 1: Most connected
+
+[degree, ~, ~] = graph_stats(G);
+
+working_robots = false(size(G,1),1);
+working_robots(faulty) = true;
+broken_indices = find(working_robots);
+
+degree(broken_indices) = 0;
+
+[~,S] = maxk(degree,m);
 
 
 end
+
