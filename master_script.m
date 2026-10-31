@@ -3,7 +3,7 @@ close all;
 
 n = 100;
 
-rng(105); 
+% rng(105); 
 P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
 
 % Finding r_min
@@ -142,7 +142,7 @@ leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders);
 n = size(test.G,1);
 
 lamda = ones(n,1);
-%Put in code to interate through lambda leaders
+%Put in code to iterate through lambda leaders
 for i = leaders
     lamda(i) = 0.5;
 end
@@ -168,6 +168,17 @@ grid on;
 
 X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
 Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+
+figure('Name',"Test Network End");
+plot(graph(test.G), 'XData', X(:,n+1), ...
+    'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
+    {});
+hold on;
+plot(test.g(1), test.g(2), 'gp', 'MarkerSize',15, 'Color','g');
+title("Test Network End");
+grid on;
+
+test_score = score_mission(test, leaders);
 
 % Simple leader selection functions
 
@@ -203,7 +214,9 @@ function S = closest_to_goal(G, P0,faulty, g, m)
 
 end
 
-seeds = randi([1, 100], 1, 50); 
+% Comparing Simple Leader Selections
+
+seeds = randi([1, 100], 1, 30); 
 
 random_scores = zeros(size(seeds));
 highest_scores = zeros(size(seeds));

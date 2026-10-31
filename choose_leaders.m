@@ -24,7 +24,7 @@ function S = choose_leaders(G, P0, faulty, g, m)
 %       this function, so that this single file is all we need to run it.
 %
 %   Team: <team name>
-%   Members: <names>
+%   Members: Spencer Koh, Yijia Mao, Dayanis Morales Salgado
 %
 %   Strategy (2-3 sentences describing your rule, in words):
 %   <describe it here>
