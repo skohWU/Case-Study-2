@@ -210,8 +210,8 @@ function S = closest_to_goal(G, P0,faulty, g, m)
     broken_indices = find(working_robots);
 
     distance = vecnorm(P0 - g, 2, 2);
-    distance(broken_indices) = 0;
-    [~,S] = maxk(distance,m);
+    distance(broken_indices) = 10000;
+    [~,S] = mink(distance,m);
 
 end
 
@@ -265,80 +265,15 @@ n = size(seed19.G,1);
 % Random Leaders on 19
 
 leaders = random_working(seed19.G, seed19.faulty, num_leaders);
-
-lamda = ones(n,1);
-for i = leaders
-    lamda(i) = 0.5;
-end
-lamda(seed19.faulty) = 0;
-
-a = seed19.P0(:,1);
-a(leaders) = seed19.g(1);
-b = seed19.P0(:,2);
-a(leaders) = seed19.g(2);
-
-X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
-Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
-
-figure('Name',"Random Leaders 19 End");
-plot(graph(seed19.G), 'XData', X(:,n+1), ...
-    'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
-    {});
-hold on;
-plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
-title("Random Leaders 19 End");
-grid on;
+export_for_viewer(seed19,leaders,"seed19random.json");
 
 % Highest degree Leaders on 19
 
 leaders = highest_degree(seed19.G, seed19.faulty, num_leaders);
-
-lamda = ones(n,1);
-for i = leaders
-    lamda(i) = 0.5;
-end
-lamda(seed19.faulty) = 0;
-
-a = seed19.P0(:,1);
-a(leaders) = seed19.g(1);
-b = seed19.P0(:,2);
-a(leaders) = seed19.g(2);
-
-X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
-Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
-
-figure('Name',"Highest Deg Leaders 19 End");
-plot(graph(seed19.G), 'XData', X(:,n+1), ...
-    'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
-    {});
-hold on;
-plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
-title("Highest Deg Leaders 19 End");
-grid on;
+export_for_viewer(seed19,leaders,"seed19Highest.json");
 
 % Closest to g Leaders on 19
 
 leaders = closest_to_goal(seed19.G, seed19.P0, seed19.faulty, seed19.g, num_leaders);
+export_for_viewer(seed19,leaders,"seed19Closest.json");
 
-lamda = ones(n,1);
-for i = leaders
-    lamda(i) = 0.5;
-end
-lamda(seed19.faulty) = 0;
-
-a = seed19.P0(:,1);
-a(leaders) = seed19.g(1);
-b = seed19.P0(:,2);
-a(leaders) = seed19.g(2);
-
-X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
-Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
-
-figure('Name',"Closest Leaders 19 End");
-plot(graph(seed19.G), 'XData', X(:,n+1), ...
-    'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
-    {});
-hold on;
-plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
-title("Closest Leaders 19 End");
-grid on;
