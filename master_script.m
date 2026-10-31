@@ -163,7 +163,7 @@ plot(delta_ring);
 plot(delta_disk);
 plot(delta_plus)
 legend("Complete", "Star", "Ring", "Disk", "Disk, r = r + 0.4");
-yscale(ax2,"log")
+yscale("log");
 hold off;
 
 exportgraphics(gcf, 'deltas.png');
