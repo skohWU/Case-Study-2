@@ -59,10 +59,11 @@ stats = table([degree_complete' * ones(n,1) * 1/100, degree_star' * ones(n,1) * 
 
 % Graph disk network with connections.
 
-figure('Name',"Disk Graph Network");
+figure('Name',"Disk Graph Network", 'Theme', "light");
 plot(graph(G_disk), 'XData', P0(:,1), 'YData', P0(:,2), 'NodeColor','r', 'NodeLabel',{});
 title("Disk Graph Network");
 grid on;
+exportgraphics(gcf, 'diskGraphNetwork.png', 'BackgroundColor', 'white');
 
 % Make each protocol, A and B, for each network.
 
@@ -80,7 +81,7 @@ C = eye(n) - 1/n * ones(n,1) * ones(n,1)';
 X_complete = simulate_linear(W_A_complete,P0(:,1),K);
 Y_complete = simulate_linear(W_A_complete,P0(:,2),K);
 
-delta_complete = zeros(n,K+1);
+delta_complete = zeros(K+1,1);
 
 for k = 1:K+1
     delta_complete(k) = sqrt(norm(C * X_complete(:,k))^2 + norm(C * Y_complete(:,k))^2);
@@ -93,7 +94,7 @@ k_epsilon_complete = find(delta_complete <= 0.01*delta_complete(1),1);
 X_star = simulate_linear(W_A_star,P0(:,1),K);
 Y_star = simulate_linear(W_A_star,P0(:,2),K);
 
-delta_star = zeros(n,K+1);
+delta_star = zeros(K+1,1);
 
 for k = 1:K+1
     delta_star(k) = sqrt(norm(C * X_star(:,k))^2 + norm(C * Y_star(:,k))^2);
@@ -106,7 +107,7 @@ k_epsilon_star = find(delta_star <= 0.01*delta_star(1),1);
 X_ring = simulate_linear(W_A_ring,P0(:,1),K);
 Y_ring = simulate_linear(W_A_ring,P0(:,2),K);
 
-delta_ring = zeros(n,K+1);
+delta_ring = zeros(K+1,1);
 
 for k = 1:K+1
     delta_ring(k) = sqrt(norm(C * X_ring(:,k))^2 + norm(C * Y_ring(:,k))^2);
@@ -119,7 +120,7 @@ k_epsilon_ring = find(delta_ring <= 0.01*delta_ring(1),1);
 X_disk = simulate_linear(W_A_disk,P0(:,1),K);
 Y_disk = simulate_linear(W_A_disk,P0(:,2),K);
 
-delta_disk = zeros(n,K+1);
+delta_disk = zeros(K+1,1);
 
 for k = 1:K+1
     delta_disk(k) = sqrt(norm(C * X_disk(:,k))^2 + norm(C * Y_disk(:,k))^2);
@@ -127,10 +128,42 @@ end
 
 k_epsilon_disk = find(delta_disk <= 0.01*delta_disk(1),1);
 
-figure('Name',"Graph after Updating Positions, Disk");
-plot(graph(G_disk), 'XData', X_disk(:,K+1), 'YData', Y_disk(:,K+1), 'NodeColor','r', 'NodeLabel',{});
-title("Graph after Updating Positions, Disk");
-grid on;
+% Simulate movement and create delta vector for T4 with r + .4
+
+disk_plus = make_disk(P0, r_min + 0.4);
+
+[degree_plus, ~, ~] = graph_stats(disk_plus);
+
+[W_A_plus, ~] = makeProtocols(degree_plus,disk_plus);
+
+X_plus = simulate_linear(W_A_plus,P0(:,1),K);
+Y_plus = simulate_linear(W_A_plus,P0(:,2),K);
+
+delta_plus = zeros(K+1,1);
+
+for k = 1:K+1
+    delta_plus(k) = sqrt(norm(C * X_plus(:,k))^2 + norm(C * Y_plus(:,k))^2);
+end
+
+k_epsilon_plus = find(delta_plus <= 0.01*delta_plus(1),1);
+
+figure(Theme="light");
+hold on;
+plot(delta_complete);
+plot(delta_star);
+plot(delta_ring);
+plot(delta_disk);
+plot(delta_plus)
+legend("Complete", "Star", "Ring", "Disk", "Disk, r = r + 0.4");
+yscale("log");
+hold off;
+
+exportgraphics(gcf, 'deltas.png');
+
+% figure('Name',"Graph after Updating Positions, Disk");
+% plot(graph(G_disk), 'XData', X_disk(:,K+1), 'YData', Y_disk(:,K+1), 'NodeColor','r', 'NodeLabel',{});
+% title("Graph after Updating Positions, Disk");
+% grid on;
 
 % Simulate a Deployment with Leaders
 seeds = randi([1, 250], 1, 30);
@@ -210,8 +243,8 @@ function S = closest_to_goal(G, P0,faulty, g, m)
     broken_indices = find(faulty_robots);
 
     distance = vecnorm(P0 - g, 2, 2);
-    distance(broken_indices) = 0;
-    [~,S] = maxk(distance,m);
+    distance(broken_indices) = 10000;
+    [~,S] = mink(distance,m);
 
 end
 
@@ -254,13 +287,17 @@ for i = 1:size(seeds,2)
     closest_scores(i) = score_mission(D, closest_leaders);
 end
 
-figure;
+figure('Theme', "light");
 hold on;
 plot(random_scores);
 plot(highest_scores);
 plot(closest_scores);
 legend("Random Leaders", "Highest Degree Leaders", "Closest to g Leaders");
+ylabel("Score");
+xlabel("Simulation")
 hold off;
+
+exportgraphics(gcf, 'simpleSelection.png');
 
 writematrix([random_scores', highest_scores', closest_scores'],"Simple_selection_scores.csv");
 
@@ -268,14 +305,16 @@ writematrix([random_scores', highest_scores', closest_scores'],"Simple_selection
 
 seed19 = make_deployment(seeds(19));
 
-figure('Name',"Seed 19");
+figure('Name',"Seed 19", 'Theme', "light");
 plot(graph(seed19.G), 'XData', seed19.P0(:,1), ...
     'YData', seed19.P0(:,2), 'NodeColor','r', 'NodeLabel', ...
     {});
 hold on;
-plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
+plot(seed19.g(1), seed19.g(2), '*', 'MarkerSize',15, 'Color',[1,0,1]);
 title("Seed 19 Start");
 grid on;
+
+exportgraphics(gcf, 'seed19Start.png');
 
 n = size(seed19.G,1);
 
@@ -286,6 +325,7 @@ n = size(seed19.G,1);
 % Random Leaders on 19
 
 leaders = random_working(seed19.G, seed19.faulty, num_leaders);
+<<<<<<< HEAD
 
 lamda = ones(n,1);
 for i = leaders
@@ -309,10 +349,14 @@ hold on;
 plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
 title("Random Leaders 19 End");
 grid on;
+=======
+export_for_viewer(seed19,leaders,"seed19random.json");
+>>>>>>> main
 
 % Highest degree Leaders on 19
 
 leaders = highest_degree(seed19.G, seed19.faulty, num_leaders);
+<<<<<<< HEAD
 
 lamda = ones(n,1);
 for i = leaders
@@ -336,10 +380,14 @@ hold on;
 plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
 title("Highest Deg Leaders 19 End");
 grid on;
+=======
+export_for_viewer(seed19,leaders,"seed19Highest.json");
+>>>>>>> main
 
 % Closest to g Leaders on 19
 
 leaders = closest_to_goal(seed19.G, seed19.P0, seed19.faulty, seed19.g, num_leaders);
+<<<<<<< HEAD
 
 lamda = ones(n,1);
 for i = leaders
@@ -394,3 +442,6 @@ for j = leaders
     grid on;
     count = count + 1;
 end
+=======
+export_for_viewer(seed19,leaders,"seed19Closest.json");
+>>>>>>> main
