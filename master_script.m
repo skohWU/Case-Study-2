@@ -3,7 +3,7 @@ close all;
 
 n = 100;
 
-% rng(105); 
+rng(105); 
 P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
 
 % Finding r_min
@@ -142,7 +142,10 @@ leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders);
 n = size(test.G,1);
 
 lamda = ones(n,1);
-lamda(leaders) = .5;
+%Put in code to interate through lambda leaders
+for i = leaders
+    lamda(i) = 0.5;
+end
 lamda(test.faulty) = 0;
 
 a = test.P0(:,1);
@@ -151,7 +154,11 @@ b = test.P0(:,2);
 a(leaders) = test.g(2);
 
 figure('Name',"Test Network Start");
-plot(graph(test.G), 'XData', test.P0(:,1), 'YData', test.P0(:,2), 'NodeColor','r', 'NodeLabel',{});
+plot(graph(test.G), 'XData', test.P0(:,1), ...
+    'YData', test.P0(:,2), 'NodeColor','r', 'NodeLabel', ...
+    {});
+hold on;
+plot(test.g(1), test.g(2), 'gp', 'MarkerSize',15, 'Color','g');
 title("Test Network Start");
 grid on;
 
