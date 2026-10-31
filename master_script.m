@@ -152,7 +152,7 @@ lamda(test.faulty) = 0;
 a = test.P0(:,1);
 a(leaders) = test.g(1);
 b = test.P0(:,2);
-a(leaders) = test.g(2);
+b(leaders) = test.g(2);
 
 figure('Name',"Test Network Start");
 plot(graph(test.G), 'XData', test.P0(:,1), ...
