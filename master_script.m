@@ -225,9 +225,9 @@ test_score = score_mission(test, leaders);
 % Simple leader selection functions
 
 function S = random_working(G, faulty, m)
-    working_robots = true(size(G,1),1);
-    working_robots(faulty) = false;
-    working_indices = find(working_robots);
+    faulty_robots = true(size(G,1),1);
+    faulty_robots(faulty) = false;
+    working_indices = find(faulty_robots);
 
     S = working_indices(randperm(size(working_indices,1), m));
 end
@@ -236,9 +236,9 @@ end
 function S = highest_degree(G, faulty, m)
     [degree, ~, ~] = graph_stats(G);
 
-    working_robots = false(size(G,1),1);
-    working_robots(faulty) = true;
-    broken_indices = find(working_robots);
+    faulty_robots = false(size(G,1),1);
+    faulty_robots(faulty) = true;
+    broken_indices = find(faulty_robots);
 
     degree(broken_indices) = 0;
 
@@ -246,13 +246,33 @@ function S = highest_degree(G, faulty, m)
 end
 
 function S = closest_to_goal(G, P0,faulty, g, m)
-    working_robots = false(size(G,1),1);
-    working_robots(faulty) = true;
-    broken_indices = find(working_robots);
+    faulty_robots = false(size(G,1),1);
+    faulty_robots(faulty) = true;
+    broken_indices = find(faulty_robots);
 
     distance = vecnorm(P0 - g, 2, 2);
     distance(broken_indices) = 10000;
     [~,S] = mink(distance,m);
+
+end
+
+function S = distances_to_goal(G, P0,faulty, g, m)
+%Modification: Returns a n-m x m matrix containing
+%different S 
+n = size(G, 1);
+S = zeros(n-m-length(faulty)+1, m);
+faulty_robots = false(size(G,1),1);
+faulty_robots(faulty) = true;
+broken_indices = find(faulty_robots);
+
+distance = vecnorm(P0 - g, 2, 2);
+distance(broken_indices) = inf;
+
+[~,newArr] = sort(distance);
+
+for i = 1:size(S,1)
+    S(i,:) = newArr(i:i+m-1);
+end
 
 end
 
@@ -323,3 +343,36 @@ export_for_viewer(seed19,leaders,"seed19Highest.json");
 
 leaders = closest_to_goal(seed19.G, seed19.P0, seed19.faulty, seed19.g, num_leaders);
 export_for_viewer(seed19,leaders,"seed19Closest.json");
+
+grid on;
+
+% Distance to g Leaders on 19
+
+leaders = distances_to_goal(seed19.G, seed19.P0, seed19.faulty, seed19.g, num_leaders);
+count = 0;
+for j = leaders
+    lamda = ones(n,1);
+    for i = j
+        lamda(i) = 0.5;
+    end
+    lamda(seed19.faulty) = 0;
+
+    a = seed19.P0(:,1);
+    a(j) = seed19.g(1);
+    b = seed19.P0(:,2);
+    b(j) = seed19.g(2);
+
+    X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
+    Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
+
+    figure('Name', "#" + count + " Leaders 19 End");
+    p = plot(graph(seed19.G), 'XData', X(:,n+1), ...
+        'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
+        {});
+    hold on;
+    highlight(p, j, 'NodeColor', 'b', 'MarkerSize', 3);
+    plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
+    title("Closest Leaders 19 End");
+    grid on;
+    count = count + 1;
+end
