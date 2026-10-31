@@ -258,8 +258,6 @@ grid on;
 
 n = size(seed19.G,1);
 
-lamda = ones(n,1);
-
 [degree, ~, ~] = graph_stats(seed19.G);
 
 [W, ~] = makeProtocols(degree, seed19.G);
@@ -268,18 +266,19 @@ lamda = ones(n,1);
 
 leaders = random_working(seed19.G, seed19.faulty, num_leaders);
 
+lamda = ones(n,1);
 for i = leaders
     lamda(i) = 0.5;
 end
-lamda(test.faulty) = 0;
+lamda(seed19.faulty) = 0;
 
 a = seed19.P0(:,1);
 a(leaders) = seed19.g(1);
 b = seed19.P0(:,2);
 a(leaders) = seed19.g(2);
 
-X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
-Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
+Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
 
 figure('Name',"Random Leaders 19 End");
 plot(graph(seed19.G), 'XData', X(:,n+1), ...
@@ -294,18 +293,19 @@ grid on;
 
 leaders = highest_degree(seed19.G, seed19.faulty, num_leaders);
 
+lamda = ones(n,1);
 for i = leaders
     lamda(i) = 0.5;
 end
-lamda(test.faulty) = 0;
+lamda(seed19.faulty) = 0;
 
 a = seed19.P0(:,1);
 a(leaders) = seed19.g(1);
 b = seed19.P0(:,2);
 a(leaders) = seed19.g(2);
 
-X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
-Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
+Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
 
 figure('Name',"Highest Deg Leaders 19 End");
 plot(graph(seed19.G), 'XData', X(:,n+1), ...
@@ -320,18 +320,19 @@ grid on;
 
 leaders = closest_to_goal(seed19.G, seed19.P0, seed19.faulty, seed19.g, num_leaders);
 
+lamda = ones(n,1);
 for i = leaders
     lamda(i) = 0.5;
 end
-lamda(test.faulty) = 0;
+lamda(seed19.faulty) = 0;
 
 a = seed19.P0(:,1);
 a(leaders) = seed19.g(1);
 b = seed19.P0(:,2);
 a(leaders) = seed19.g(2);
 
-X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
-Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
+X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
+Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
 
 figure('Name',"Closest Leaders 19 End");
 plot(graph(seed19.G), 'XData', X(:,n+1), ...
