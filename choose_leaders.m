@@ -29,28 +29,51 @@ function S = choose_leaders(G, P0, faulty, g, m)
 %   Strategy (2-3 sentences describing your rule, in words):
 %   <describe it here>
 %   Prelim strategy 1: 
-%   Select the most strongly connected robots as leaders, 
-% given the connections aren't to a faulty one.
-n = size(G, 1);
-working = true(n, 1);
-working(faulty) = false;
-S = zeros(m, 1);
-% ---- replace this placeholder with your strategy ----
-elS = 1;
-for i = faulty.'
-    G(i, :) = zeros(1,n);
-    G(:, i) = zeros(n,1);
-end
-for i = 1:m
-    S(i) = sum(G(i, :));
-sort(S);
-for cols = G
-    if sum(cols) > S(1)
-        S(elS) = sum(cols);
-        sort(S);
-    end
-    
-end
+%   Select the robots that have the highest weighted score. Score is
+%   weighted between number of connections, distance to the goal, and
+%   separation from other leaders.
 
+working_robots = true(size(G,1), 1);
+working_robots(faulty) = false;
+working_indices = find(working_robots);
+
+S = [];
+
+degree = sum(G, 2);
+degree = degree / (max(degree));
+
+distance_to_g = sqrt(sum((P0 - g).^2, 2));
+distance_score = distance_to_g / (max(distance_to_g));
+
+for k = 1:m
+
+    best_score = -inf;
+    best_robot = -1;
+
+    for i = working_indices'
+        if ismember(i, S)
+            continue;
+        end
+        if isempty(S)
+            separation = 0;
+        else
+            distances = sqrt(sum((P0(S,:) - P0(i,:)).^2, 2));
+
+            separation = min(distances);
+            separation = separation/(max(distance_to_g));
+            separation = min(separation, 1);
+        end
+
+        score = .5 * degree(i) + .2 * distance_score(i) + .3 * separation;
+
+        if score > best_score
+            best_score = score;
+            best_robot = i;
+        end
+    end
+
+    S(end+1) = best_robot;
+
+end
 
 end

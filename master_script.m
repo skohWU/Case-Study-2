@@ -179,7 +179,7 @@ seeds = randi([1, 250], 1, 30);
 num_leaders = 4;
 
 test = make_deployment(seeds(1));
-leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders);
+leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders, .4, .2, .4);
 
 n = size(test.G,1);
 
@@ -348,61 +348,15 @@ grid on;
 
 % Testing our leader selection
 
-% Spencer's thing with degree
-function S = degreeThing(G, P0, faulty, g, m)
+scores = zeros(size(seeds(),2),1);
 
-working_robots = true(size(G,1), 1);
-working_robots(faulty) = false;
-working_indices = find(working_robots);
-
-S = [];
-
-degree = sum(G, 2);
-degree = degree / (max(degree));
-
-distance_to_g = sqrt(sum((P0 - g).^2, 2));
-distance_score = distance_to_g / (max(distance_to_g));
-
-for k = 1:m
-
-    best_score = -inf;
-    best_robot = -1;
-
-    for i = working_indices'
-        if ismember(i, S)
-            continue;
-        end
-        if isempty(S)
-            separation = 0;
-        else
-            distances = sqrt(sum((P0(S,:) - P0(i,:)).^2, 2));
-
-            separation = min(distances);
-            separation = separation/(max(distance_to_g));
-            separation = min(separation, 1);
-        end
-
-
-        score = 0.4 * degree(i) + 0.2 * distance_score(i) + 0.4 * separation;
-
-        if score > best_score
-            best_score = score;
-            best_robot = i;
-        end
-    end
-
-    S(end+1) = best_robot;
-
-end
+for i = 1:size(seeds(),2)
+    D = make_deployment(seeds(i));
+    leaders = choose_leaders(D.G, D.P0, D.faulty, D.g, num_leaders, .35, .25, .4);
+    scores(i) = score_mission(D,leaders);
 end
 
-degree_scores = zeros(size(seeds,2),1);
-for i = 1:size(seeds,2)
-    D = make_deployment(seeds(i));  
-    leaders = degreeThing(D.G, D.P0, D.faulty, D.g, num_leaders);
-    degree_scores(i) = score_mission(D, leaders);
-end
-
+average_score = sum(scores) / length(scores);
 
 % Actually testing across all 30 seeds
 
@@ -451,3 +405,41 @@ end
 % end
 
 % writematrix(distanceScores,"distanceScores.csv");
+
+% % Find weights for choose_leaders
+% 
+% step_size = 0.05; 
+% max_score = -Inf;
+% best_weights = [];
+% 
+% 
+% for w1 = 0:step_size:1
+%     for w2 = 0:step_size:(1 - w1) 
+%         w3 = 1 - w1 - w2;
+% 
+%         current_weights = [w1, w2, w3];
+% 
+%         scores = zeros(size(seeds(),2),1);
+% 
+%         for i = 1:size(seeds(),2)
+%             D = make_deployment(seeds(i));
+%             scores(i) = score_mission(D,choose_leaders(D.G, D.P0, D.faulty, D.g, num_leaders, w1, w2, w3));
+%         end
+% 
+%         current_score = sum(scores) / length(scores);
+% 
+%         % Check if this combination beats the previous best score
+%         if current_score > max_score
+%             max_score = current_score;
+%             best_weights = current_weights;
+%         end
+% 
+%     end
+% end
+% 
+% % 4. Display the results
+% fprintf('--- Optimization Results ---\n');
+% fprintf('Maximum Score achieved: %.2f\n', max_score);
+% fprintf('Optimal Weight 1: %.2f%%\n', best_weights(1) * 100);
+% fprintf('Optimal Weight 2: %.2f%%\n', best_weights(2) * 100);
+% fprintf('Optimal Weight 3: %.2f%%\n', best_weights(3) * 100);
