@@ -346,33 +346,108 @@ export_for_viewer(seed19,leaders,"seed19Closest.json");
 
 grid on;
 
+% Testing our leader selection
+
+% Spencer's thing with degree
+function S = degreeThing(G, P0, faulty, g, m)
+
+working_robots = true(size(G,1), 1);
+working_robots(faulty) = false;
+working_indices = find(working_robots);
+
+S = [];
+
+degree = sum(G, 2);
+degree = degree / (max(degree));
+
+distance_to_g = sqrt(sum((P0 - g).^2, 2));
+distance_score = distance_to_g / (max(distance_to_g));
+
+for k = 1:m
+
+    best_score = -inf;
+    best_robot = -1;
+
+    for i = working_indices'
+        if ismember(i, S)
+            continue;
+        end
+        if isempty(S)
+            separation = 0;
+        else
+            distances = sqrt(sum((P0(S,:) - P0(i,:)).^2, 2));
+
+            separation = min(distances);
+            separation = separation/(max(distance_to_g));
+            separation = min(separation, 1);
+        end
+
+
+        score = 0.4 * degree(i) + 0.2 * distance_score(i) + 0.4 * separation;
+
+        if score > best_score
+            best_score = score;
+            best_robot = i;
+        end
+    end
+
+    S(end+1) = best_robot;
+
+end
+end
+
+degree_scores = zeros(size(seeds,2),1);
+for i = 1:size(seeds,2)
+    D = make_deployment(seeds(i));  
+    leaders = degreeThing(D.G, D.P0, D.faulty, D.g, num_leaders);
+    degree_scores(i) = score_mission(D, leaders);
+end
+
+
+% Actually testing across all 30 seeds
+
 % Distance to g Leaders on 19
 
-leaders = distances_to_goal(seed19.G, seed19.P0, seed19.faulty, seed19.g, num_leaders);
-count = 0;
-for j = leaders
-    lamda = ones(n,1);
-    for i = j
-        lamda(i) = 0.5;
-    end
-    lamda(seed19.faulty) = 0;
+% distanceScores = zeros(size(leaders,1),size(seeds,2));
+% 
+% for i = 1:size(seeds,2)
+%     D = make_deployment(seeds(i));  
+%     leaders = distances_to_goal(D.G, D.P0, D.faulty, D.g, num_leaders);
+%     % count = 0;
+% 
+% 
+%     for j = 1:size(leaders,1)
+% 
+%         distanceScores(j,i) = score_mission(D,leaders(j,:));
+% 
+%         % lamda = ones(n,1);
+%         % for i = j
+%         %     lamda(i) = 0.5;
+%         % end
+%         % lamda(seed19.faulty) = 0;
+%         % 
+%         % 
+%         % 
+%         % a = seed19.P0(:,1);
+%         % a(j) = seed19.g(1);
+%         % b = seed19.P0(:,2);
+%         % b(j) = seed19.g(2);
+%         % 
+%         % X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
+%         % Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
+%         % 
+%         % figure('Name', "#" + count + " Leaders 19 End");
+%         % p = plot(graph(seed19.G), 'XData', X(:,n+1), ...
+%         %     'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
+%         %     {});
+%         % hold on;
+%         % highlight(p, j, 'NodeColor', 'b', 'MarkerSize', 3);
+%         % plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
+%         % title("Closest Leaders 19 End");
+%         % grid on;
+% 
+%         % count = count + 1;
+%     end
+% end
 
-    a = seed19.P0(:,1);
-    a(j) = seed19.g(1);
-    b = seed19.P0(:,2);
-    b(j) = seed19.g(2);
-
-    X = simulate_anchored(W, lamda, a, seed19.P0(:,1), n);
-    Y = simulate_anchored(W, lamda, b, seed19.P0(:,2), n);
-
-    figure('Name', "#" + count + " Leaders 19 End");
-    p = plot(graph(seed19.G), 'XData', X(:,n+1), ...
-        'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
-        {});
-    hold on;
-    highlight(p, j, 'NodeColor', 'b', 'MarkerSize', 3);
-    plot(seed19.g(1), seed19.g(2), 'gp', 'MarkerSize',15, 'Color','g');
-    title("Closest Leaders 19 End");
-    grid on;
-    count = count + 1;
-end
+% writematrix(distanceScores,"distanceScores.csv");
