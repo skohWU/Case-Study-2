@@ -179,7 +179,7 @@ seeds = randi([1, 250], 1, 30);
 num_leaders = 4;
 
 test = make_deployment(seeds(1));
-leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders, .4, .2, .4);
+leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders);
 
 n = size(test.G,1);
 
@@ -346,21 +346,19 @@ export_for_viewer(seed19,leaders,"seed19Closest.json");
 
 grid on;
 
-% Testing our leader selection
+%% Testing our leader selection
 
 scores = zeros(size(seeds(),2),1);
 
 for i = 1:size(seeds(),2)
     D = make_deployment(seeds(i));
-    leaders = choose_leaders(D.G, D.P0, D.faulty, D.g, num_leaders, .35, .25, .4);
+    leaders = choose_leaders(D.G, D.P0, D.faulty, D.g, num_leaders);
     scores(i) = score_mission(D,leaders);
 end
 
 average_score = sum(scores) / length(scores);
 
-% Actually testing across all 30 seeds
-
-% Distance to g Leaders on 19
+%% Test Different Distance Based Leaders Across our 30 Seeds
 
 % distanceScores = zeros(size(leaders,1),size(seeds,2));
 % 
@@ -406,7 +404,7 @@ average_score = sum(scores) / length(scores);
 
 % writematrix(distanceScores,"distanceScores.csv");
 
-% % Find weights for choose_leaders
+%% Find weights for choose_leaders
 % 
 % step_size = 0.05; 
 % max_score = -Inf;
