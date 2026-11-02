@@ -12,12 +12,13 @@ r = 0;
 while true
     G_disk_rmin = make_disk(P0,r);
     [~, ~, diameter_rmin] = graph_stats(G_disk_rmin);
-    r = r + 0.1;
-
     if diameter_rmin ~= inf
         r_min = r;
         break
     end
+    r = r + 0.1;
+
+    
 end
 
 G_disk = make_disk(P0,r_min);
@@ -193,7 +194,7 @@ lamda(test.faulty) = 0;
 a = test.P0(:,1);
 a(leaders) = test.g(1);
 b = test.P0(:,2);
-a(leaders) = test.g(2);
+b(leaders) = test.g(2);
 
 figure('Name',"Test Network Start");
 plot(graph(test.G), 'XData', test.P0(:,1), ...
