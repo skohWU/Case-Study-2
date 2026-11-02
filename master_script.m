@@ -204,20 +204,27 @@ one   = ones(n,1);
 names = ["Complete", "Star", "Ring", "Disk"];
 Gs    = {G_complete, G_star, G_ring, G_disk};
 ds    = {degree_complete, degree_star, degree_ring, degree_disk};
+Kbig  = 2^20;
 
 for i = 1:4
-    G = Gs{i};   d = ds{i};
-    [~, E, ~]  = graph_stats(G);
-    [W_A, W_B] = makeProtocols(d, G);
-    Ws = {W_A, W_B};
+    d = ds{i};
+    [~, E, ~]  = graph_stats(Gs{i});
+    [W_A, W_B] = makeProtocols(d, Gs{i});
 
+% Predicted meeting points 
     v  = one + d;
-   
+    cs = {[v'*P0(:,1), v'*P0(:,2)] / (n + 2*E), ... 
+        [one'*P0(:,1), one'*P0(:,2)] / n};           
 
+    endA = [mean(W_A^Kbig * P0(:,1)), mean(W_A^Kbig * P0(:,2))];
+    endB = [mean(W_B^Kbig * P0(:,1)), mean(W_B^Kbig * P0(:,2))];
 
-
-
+    fprintf('%-8s  error A = %.2e   error B = %.2e\n', names(i), norm(cs{1}-endA), norm(cs{2}-endB));
+    fprintf('predicted A [%.4f %.4f]  simulated A [%.4f %.4f]\n', cs{1}, endA);
+    fprintf('predicted B [%.4f %.4f]  simulated B [%.4f %.4f]\n', cs{2}, endB);
 end
+
+
 
 % Part III: Simulate a deployment with leaders
 
