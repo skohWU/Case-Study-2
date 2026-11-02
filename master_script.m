@@ -195,9 +195,29 @@ exportgraphics(gcf, 'deltas.png');
 % title("Graph after Updating Positions, Disk");
 % grid on;
 
-%Part E2 Validation
 
 
+
+% Part E2 Validation
+
+one   = ones(n,1);
+names = ["Complete", "Star", "Ring", "Disk"];
+Gs    = {G_complete, G_star, G_ring, G_disk};
+ds    = {degree_complete, degree_star, degree_ring, degree_disk};
+
+for i = 1:4
+    G = Gs{i};   d = ds{i};
+    [~, E, ~]  = graph_stats(G);
+    [W_A, W_B] = makeProtocols(d, G);
+    Ws = {W_A, W_B};
+
+    v  = one + d;
+   
+
+
+
+
+end
 
 % Part III: Simulate a deployment with leaders
 
