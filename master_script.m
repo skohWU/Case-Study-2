@@ -8,7 +8,7 @@ n = 100;
 rng(105); 
 P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
 
-% Part I: Communication Networks
+%% Part I: Communication Networks
 
 % Finding r_min: smallest radius (to the nearest 0.1) giving a connected
 % disk graph. graph_stats returns diameter = inf when the network is
@@ -83,7 +83,7 @@ grid on;
 exportgraphics(gcf, 'diskGraphNetwork.png', 'BackgroundColor', 'white');
 
 
-% Part II: Rendezvous Protocols 
+%% Part II: Rendezvous Protocols 
 
 % Make each protocol, A and B, for each network.
 
@@ -227,7 +227,7 @@ fprintf('cross-zone links: r_min = %d, r_min+0.4 = %d\n', ...
 
 
 
-% Part E2 Validation
+%% Part E2 Validation
 
 one   = ones(n,1);
 names = ["Complete", "Star", "Ring", "Disk"];
@@ -255,7 +255,7 @@ end
 
 
 
-% Part III: Simulate a deployment with leaders
+%% Part III: Simulate a deployment with leaders
 
 % Pick 30 random practice seeds 
 seeds = randi([1, 250], 1, 30);
@@ -354,7 +354,7 @@ err = max(norm(xstar - X(:,end)), norm(ystar - Y(:,end)))
 work = setdiff(1:n, D.faulty);
 mean_dist_to_g = mean(vecnorm([xstar(work) ystar(work)] - D.g(:)', 2, 2))
 
-% Simple leader selection functions
+%% Simple leader selection functions
 
 
 % Strategy 1: m random working (non-faulty) robots 
@@ -416,7 +416,7 @@ end
 
 end
 
-% Comparing Simple Leader Selections
+%% Comparing Simple Leader Selections
 % Score each simple strategy on every seed
 
 random_scores = zeros(size(seeds));
