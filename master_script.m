@@ -1,12 +1,18 @@
 clearvars;
 close all;
 
+
+
 n = 100;
 
 rng(105); 
 P0 = [5*rand(50,2); 5*rand(50,2) + [6 0]];
 
-% Finding r_min
+% Part I: Communication Networks
+
+% Finding r_min: smallest radius (to the nearest 0.1) giving a connected
+% disk graph. graph_stats returns diameter = inf when the network is
+% disconnected 
 r = 0;
 
 while true
@@ -14,11 +20,9 @@ while true
     [~, ~, diameter_rmin] = graph_stats(G_disk_rmin);
     if diameter_rmin ~= inf
         r_min = r;
-        break
+        break                           % r is the first connected radius 
     end
-    r = r + 0.1;
-
-    
+    r = r + 0.1;                        
 end
 
 G_disk = make_disk(P0,r_min);
@@ -26,7 +30,8 @@ G_disk = make_disk(P0,r_min);
 
 
 
-% Finding ring's k.
+% Finding ring's k: increase k while k+1 gets the ring's edge count closer
+% to the disk graphs edge count
 k = 1;
 
 while true
@@ -56,6 +61,9 @@ G_complete = make_complete(n);
 [degree_complete, edge_count_complete, diameter_complete] = graph_stats(G_complete);
 
 % Make a table comparing different networks.
+% Columns: mean degree, max degree, edge count, diameter
+% (degree' * ones(n,1) * 1/100 is the sum of degrees divided by n = 100,
+% i.e. the mean degree)
 
 stats = table([degree_complete' * ones(n,1) * 1/100, degree_star' * ...
     ones(n,1) * 1/100 , degree_ring' * ones(n,1) * 1/100 , degree_disk' * ...
@@ -74,6 +82,9 @@ title("Disk Graph Network");
 grid on;
 exportgraphics(gcf, 'diskGraphNetwork.png', 'BackgroundColor', 'white');
 
+
+% Part II: Rendezvous Protocols 
+
 % Make each protocol, A and B, for each network.
 
 [W_A_complete, W_B_complete] = makeProtocols(degree_complete,G_complete);
@@ -81,9 +92,17 @@ exportgraphics(gcf, 'diskGraphNetwork.png', 'BackgroundColor', 'white');
 [W_A_star, W_B_star] = makeProtocols(degree_star,G_star);
 [W_A_disk, W_B_disk] = makeProtocols(degree_disk,G_disk);
 
-K = 100;
+K = 100;                                % number of simulation steps 
 
+% Centering matrix --> C*x subtracts the average from x
 C = eye(n) - 1/n * ones(n,1) * ones(n,1)';
+
+
+
+% The next five blocks all do the same thing for one network:
+% 1) simulate x and y with Protocol A (columns are x[0]...x[K])
+% 2) compute delta[k], the spread of the swarm, for every step
+% 3) find k_epsilon, the first step with delta <= 1% of delta[0]
 
 % Simulate movement and create delta vector for T1 (Complete)
 
@@ -156,6 +175,8 @@ end
 
 k_epsilon_plus = find(delta_plus <= 0.01*delta_plus(1),1);
 
+% Plot delta[k] for all networks on one figure (log scale)
+
 figure(Theme="light");
 hold on;
 plot(delta_complete);
@@ -174,28 +195,36 @@ exportgraphics(gcf, 'deltas.png');
 % title("Graph after Updating Positions, Disk");
 % grid on;
 
-% Simulate a Deployment with Leaders
+
+% Part III: Simulate a deployment with leaders
+
+% Pick 30 random practice seeds 
 seeds = randi([1, 250], 1, 30);
 
 num_leaders = 4;
 
+% Build one test deployment and choose leaders with our strategy 
 test = make_deployment(seeds(1));
 leaders = choose_leaders(test.G, test.P0, test.faulty, test.g, num_leaders);
 
 n = size(test.G,1);
 
+% Responsiveness: followers 1, leaders 0.5, faulty 0
 lamda = ones(n,1);
-%Put in code to iterate through lambda leaders
+% Put in code to iterate through lambda leaders
 for i = leaders
     lamda(i) = 0.5;
 end
 lamda(test.faulty) = 0;
 
+
+% Anchors: landing positions, except leaders are anchored at g
 a = test.P0(:,1);
 a(leaders) = test.g(1);
 b = test.P0(:,2);
 b(leaders) = test.g(2);
 
+% Plot the network at the start 
 figure('Name',"Test Network Start");
 plot(graph(test.G), 'XData', test.P0(:,1), ...
     'YData', test.P0(:,2), 'NodeColor','r', 'NodeLabel', ...
@@ -209,9 +238,12 @@ grid on;
 
 [W, ~] = makeProtocols(degree, test.G);
 
+
+% Run the anchored simulation for n steps (n = number of robots here)
 X = simulate_anchored(W, lamda, a, test.P0(:,1), n);
 Y = simulate_anchored(W, lamda, b, test.P0(:,2), n);
 
+% Plot the network at the end
 figure('Name',"Test Network End");
 plot(graph(test.G), 'XData', X(:,n+1), ...
     'YData', Y(:,n+1), 'NodeColor','r', 'NodeLabel', ...
@@ -223,8 +255,50 @@ grid on;
 
 test_score = score_mission(test, leaders);
 
+
+
+% Steady state (no leaders)
+% Solve (I - Lam*W) x* = (I - Lam) a with backslash, then compare to a 
+% long simulation. err should be near 0. mean_dist_to_g shows how far 
+% the swarm ends up from the rally point.
+
+
+%% D.1: Steady state (no leaders)
+
+D = make_deployment(seeds(1));
+n = size(D.G,1);
+
+[deg, ~, ~] = graph_stats(D.G);
+[W, ~]      = makeProtocols(deg, D.G);
+
+lam = ones(n,1);   lam(D.faulty) = 0;    % no leaders, faulty robots stuck
+a = D.P0(:,1);     b = D.P0(:,2);        % anchors = landing positions
+Lam = diag(lam);
+
+% Steady state by backslash
+M     = eye(n) - Lam*W;
+xstar = M \ ((eye(n) - Lam) * a);
+ystar = M \ ((eye(n) - Lam) * b);
+
+res = norm(xstar - (Lam*W*xstar + (eye(n) - Lam)*a))
+
+rho = max(abs(eig(Lam*W)))                    % must be less than 1
+K   = min(ceil(log(1e-10) / log(rho)), 50000)
+
+X = simulate_anchored(W, lam, a, D.P0(:,1), K);
+Y = simulate_anchored(W, lam, b, D.P0(:,2), K);
+
+% VALUE 1: solved steady state vs. long-run simulation
+err = max(norm(xstar - X(:,end)), norm(ystar - Y(:,end)))
+
+% VALUE 2: mean distance of the working robots from the rally point
+work = setdiff(1:n, D.faulty);
+mean_dist_to_g = mean(vecnorm([xstar(work) ystar(work)] - D.g(:)', 2, 2))
+
 % Simple leader selection functions
 
+
+% Strategy 1: m random working (non-faulty) robots 
 function S = random_working(G, faulty, m)
     faulty_robots = true(size(G,1),1);
     faulty_robots(faulty) = false;
@@ -233,7 +307,8 @@ function S = random_working(G, faulty, m)
     S = working_indices(randperm(size(working_indices,1), m));
 end
 
-
+% Strategy 2: the m working robots with the highest degree 
+% (faulty robots get degree 0 so they are never picked)
 function S = highest_degree(G, faulty, m)
     [degree, ~, ~] = graph_stats(G);
 
@@ -246,6 +321,9 @@ function S = highest_degree(G, faulty, m)
     [~,S] = maxk(degree,m);
 end
 
+
+% Strategy 3: the m working robots that landed closest to g 
+% (faulty robots get a huge distance so they are never picked)
 function S = closest_to_goal(G, P0,faulty, g, m)
     faulty_robots = false(size(G,1),1);
     faulty_robots(faulty) = true;
@@ -257,9 +335,11 @@ function S = closest_to_goal(G, P0,faulty, g, m)
 
 end
 
+% Exploration helper: returns every window of m consecutive robots in order
+% of distance to g (not used in the comparison below)
 function S = distances_to_goal(G, P0,faulty, g, m)
-%Modification: Returns a n-m x m matrix containing
-%different S 
+% Modification: Returns a n-m x m matrix containing
+% different S
 n = size(G, 1);
 S = zeros(n-m-length(faulty)+1, m);
 faulty_robots = false(size(G,1),1);
@@ -278,6 +358,7 @@ end
 end
 
 % Comparing Simple Leader Selections
+% Score each simple strategy on every seed
 
 random_scores = zeros(size(seeds));
 highest_scores = zeros(size(seeds));
@@ -295,6 +376,7 @@ for i = 1:size(seeds,2)
     closest_scores(i) = score_mission(D, closest_leaders);
 end
 
+% Plot the scores of the three strategies on all 30 deployments 
 figure('Theme', "light");
 hold on;
 plot(random_scores);
@@ -308,6 +390,7 @@ hold off;
 exportgraphics(gcf, 'simpleSelection.png');
 
 writematrix([random_scores', highest_scores', closest_scores'],"Simple_selection_scores.csv");
+
 
 % Looking at one deployment, seed 19
 
@@ -347,17 +430,38 @@ export_for_viewer(seed19,leaders,"seed19Closest.json");
 
 grid on;
 
-%% Testing our leader selection
 
+
+%% Testing our leader selection
+% Goal: see how well our choose_leaders strategy does across many different
+% practice deployments, not just one
+
+% One slot per seed to store that deployment's score J. (size(seeds(), 2)
+% is just the number of seeds, 30 here)
 scores = zeros(size(seeds(),2),1);
 
+% Go through every practice deployment, one seed at a time 
 for i = 1:size(seeds(),2)
+
+    % Build deployment i. The same seed always gives the same deployment
+    % (network G, landing positions PO, faulty robots, and rally points g)
     D = make_deployment(seeds(i));
+
+    % It only looks at the network and positions, and returns at most
+    % num_leaders(4) working robots 
     leaders = choose_leaders(D.G, D.P0, D.faulty, D.g, num_leaders);
+
+    % Run the mission with those leaders and record the score J for this
+    % deployment (the average percent reduction in distance to g, compared
+    % with having no leaders) 
     scores(i) = score_mission(D,leaders);
 end
 
+% Average score across all deployments. This is the number the competition
+% uses (average over the hidden deployments) 
 average_score = sum(scores) / length(scores);
+
+
 
 %% Test Different Distance Based Leaders Across our 30 Seeds
 
