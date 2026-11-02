@@ -12,12 +12,13 @@ r = 0;
 while true
     G_disk_rmin = make_disk(P0,r);
     [~, ~, diameter_rmin] = graph_stats(G_disk_rmin);
-    r = r + 0.1;
-
     if diameter_rmin ~= inf
         r_min = r;
         break
     end
+    r = r + 0.1;
+
+    
 end
 
 G_disk = make_disk(P0,r_min);
@@ -193,7 +194,7 @@ lamda(test.faulty) = 0;
 a = test.P0(:,1);
 a(leaders) = test.g(1);
 b = test.P0(:,2);
-a(leaders) = test.g(2);
+b(leaders) = test.g(2);
 
 figure('Name',"Test Network Start");
 plot(graph(test.G), 'XData', test.P0(:,1), ...
@@ -346,67 +347,19 @@ export_for_viewer(seed19,leaders,"seed19Closest.json");
 
 grid on;
 
-% Testing our leader selection
+%% Testing our leader selection
 
-% Spencer's thing with degree
-function S = degreeThing(G, P0, faulty, g, m)
+scores = zeros(size(seeds(),2),1);
 
-working_robots = true(size(G,1), 1);
-working_robots(faulty) = false;
-working_indices = find(working_robots);
-
-S = [];
-
-degree = sum(G, 2);
-degree = degree / (max(degree));
-
-distance_to_g = sqrt(sum((P0 - g).^2, 2));
-distance_score = distance_to_g / (max(distance_to_g));
-
-for k = 1:m
-
-    best_score = -inf;
-    best_robot = -1;
-
-    for i = working_indices'
-        if ismember(i, S)
-            continue;
-        end
-        if isempty(S)
-            separation = 0;
-        else
-            distances = sqrt(sum((P0(S,:) - P0(i,:)).^2, 2));
-
-            separation = min(distances);
-            separation = separation/(max(distance_to_g));
-            separation = min(separation, 1);
-        end
-
-
-        score = 0.4 * degree(i) + 0.2 * distance_score(i) + 0.4 * separation;
-
-        if score > best_score
-            best_score = score;
-            best_robot = i;
-        end
-    end
-
-    S(end+1) = best_robot;
-
-end
+for i = 1:size(seeds(),2)
+    D = make_deployment(seeds(i));
+    leaders = choose_leaders(D.G, D.P0, D.faulty, D.g, num_leaders);
+    scores(i) = score_mission(D,leaders);
 end
 
-degree_scores = zeros(size(seeds,2),1);
-for i = 1:size(seeds,2)
-    D = make_deployment(seeds(i));  
-    leaders = degreeThing(D.G, D.P0, D.faulty, D.g, num_leaders);
-    degree_scores(i) = score_mission(D, leaders);
-end
+average_score = sum(scores) / length(scores);
 
-
-% Actually testing across all 30 seeds
-
-% Distance to g Leaders on 19
+%% Test Different Distance Based Leaders Across our 30 Seeds
 
 % distanceScores = zeros(size(leaders,1),size(seeds,2));
 % 
@@ -451,3 +404,41 @@ end
 % end
 
 % writematrix(distanceScores,"distanceScores.csv");
+
+%% Find weights for choose_leaders
+% 
+% step_size = 0.05; 
+% max_score = -Inf;
+% best_weights = [];
+% 
+% 
+% for w1 = 0:step_size:1
+%     for w2 = 0:step_size:(1 - w1) 
+%         w3 = 1 - w1 - w2;
+% 
+%         current_weights = [w1, w2, w3];
+% 
+%         scores = zeros(size(seeds(),2),1);
+% 
+%         for i = 1:size(seeds(),2)
+%             D = make_deployment(seeds(i));
+%             scores(i) = score_mission(D,choose_leaders(D.G, D.P0, D.faulty, D.g, num_leaders, w1, w2, w3));
+%         end
+% 
+%         current_score = sum(scores) / length(scores);
+% 
+%         % Check if this combination beats the previous best score
+%         if current_score > max_score
+%             max_score = current_score;
+%             best_weights = current_weights;
+%         end
+% 
+%     end
+% end
+% 
+% % 4. Display the results
+% fprintf('--- Optimization Results ---\n');
+% fprintf('Maximum Score achieved: %.2f\n', max_score);
+% fprintf('Optimal Weight 1: %.2f%%\n', best_weights(1) * 100);
+% fprintf('Optimal Weight 2: %.2f%%\n', best_weights(2) * 100);
+% fprintf('Optimal Weight 3: %.2f%%\n', best_weights(3) * 100);
