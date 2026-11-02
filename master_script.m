@@ -195,6 +195,9 @@ exportgraphics(gcf, 'deltas.png');
 % title("Graph after Updating Positions, Disk");
 % grid on;
 
+%Part E2 Validation
+
+
 
 % Part III: Simulate a deployment with leaders
 
