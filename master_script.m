@@ -197,6 +197,35 @@ exportgraphics(gcf, 'deltas.png');
 
 
 
+% k_epsilon values only
+K_e1 = 5000;    % long enough for slow networks to converge
+Ws    = {W_A_complete, W_A_star, W_A_ring, W_A_disk, W_A_plus};
+names = ["Complete","Star","Ring","Disk (r_min)","Disk (r_min+0.4)"];
+
+for i = 1:5
+    X = simulate_linear(Ws{i}, P0(:,1), K_e1);
+    Y = simulate_linear(Ws{i}, P0(:,2), K_e1);
+    d = sqrt(sum((C*X).^2,1) + sum((C*Y).^2,1));   % delta[0] ... delta[K_e1]
+    idx = find(d <= 0.01*d(1), 1);
+    if isempty(idx)
+        fprintf('%-18s k_eps not reached in %d steps\n', names(i), K_e1);
+    else
+        % -1 since column 1 is x[0]
+        fprintf('%-18s k_eps = %d\n', names(i), idx - 1);   
+    end
+end
+
+
+[degree_plus, edge_count_plus, diameter_plus] = graph_stats(disk_plus);
+fprintf('r_min = %.1f\n', r_min);
+fprintf('Disk r_min+0.4: edges = %d, mean deg = %.2f, max deg = %d, diameter = %d\n', ...
+    edge_count_plus, mean(degree_plus), max(degree_plus), diameter_plus);
+fprintf('cross-zone links: r_min = %d, r_min+0.4 = %d\n', ...
+    sum(sum(G_disk(1:50,51:100))), sum(sum(disk_plus(1:50,51:100))));
+
+
+
+
 
 % Part E2 Validation
 
